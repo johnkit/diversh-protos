@@ -1,0 +1,6 @@
+lstm.weight_ih_l0 torch.Size([80, 7])
+lstm.weight_hh_l0 torch.Size([80, 20])
+lstm.bias_ih_l0 torch.Size([80])
+lstm.bias_hh_l0 torch.Size([80])
+head.net.0.weight torch.Size([1, 20])
+head.net.0.bias torch.Size([1])
