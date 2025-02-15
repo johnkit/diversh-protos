@@ -1,12 +1,10 @@
 """Run neuralhyrology in local environment"""
 
-print('Loading')
-
 import argparse
 import pathlib
-import string
 import sys
 
+print('Importing libs')
 from local_nh import LocalNH
 
 # Optional filename for command line args
@@ -47,27 +45,6 @@ def validate_inputs(args):
         print(f'Creating {exp_root_dir}')
         # Create .scratch folder too
         scratch_dir.mkdir(parents=True)
-
-    # Generate basin.yml from template
-    this_dir = pathlib.Path(__file__).parent
-    template_path = this_dir / 'template.basin.yml'
-    template = None
-    with open(template_path) as fp:
-        template_string = fp.read()
-        template = string.Template(template_string)
-    if template is None:
-        raise RuntimeError(f'Failed to read yml tempalte {template_path}')
-    basin_txt_path = scratch_dir / 'basin.txt'
-    template_dict = dict(
-        basin_txt_file=basin_txt_path.resolve(),
-        data_dir=camels_path.resolve()
-        )
-    yml = template.substitute(template_dict)
-
-    # Write basin.yml to scratch folder
-    yml_path = scratch_dir / 'basin.yml'
-    with open(yml_path, 'wt') as fp:
-        fp.write(yml)
 
 def main():
     parser = argparse.ArgumentParser(

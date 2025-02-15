@@ -4,6 +4,7 @@ import argparse
 import os
 import pathlib
 import pickle
+import string
 
 # Hard coded number of epochs; must must config.yaml file
 EPOCHS = 50
@@ -31,11 +32,12 @@ class LocalNH:
         with open(txt_path, 'w') as fp:
             fp.write(self.args.basin_id)
 
-        # yml file already set up
-        # Todo generate yml file here
+        # Generate basin.yml
         yml_path = self.scratch_dir / 'basin.yml'
+        self._generate_config_file(yml_path)
+
+        # Call start_run() which does training and validation
         nh_run.start_run(yml_path)
-        # ?Also run validation?
 
         # Todo get run id
         return 'todo run_id'
@@ -58,3 +60,28 @@ class LocalNH:
 
         # If we reached here, didn't get the results data
         return dict()
+
+    def _generate_config_file(self, yml_path: pathlib.Path) -> None:
+        """Generates basin.yml from template"""
+        # Load the template file
+        this_dir = pathlib.Path(__file__).parent
+        template_path = this_dir / 'template.basin.yml'
+
+        template = None
+        with open(template_path) as fp:
+            template_string = fp.read()
+            template = string.Template(template_string)
+        if template is None:
+            raise RuntimeError(f'Failed to read yml tempalte {template_path}')
+        basin_txt_path = self.scratch_dir / 'basin.txt'
+
+        data_dir = pathlib.Path(self.args.data_dir).resolve()
+        template_dict = dict(
+            basin_txt_file=basin_txt_path.resolve(),
+            data_dir=data_dir,
+            )
+        yml = template.substitute(template_dict)
+
+        # Write basin.yml to scratch folder
+        with open(yml_path, 'wt') as fp:
+            fp.write(yml)
