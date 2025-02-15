@@ -1,7 +1,10 @@
 """Run neuralhyrology in local environment"""
 
+print('Loading')
+
 import argparse
 import pathlib
+import string
 import sys
 
 from local_nh import LocalNH
@@ -27,7 +30,7 @@ def main():
     # Include ARGS_FILENAME if present
     file_args = [f'@{ARGS_FILENAME}' if pathlib.Path(ARGS_FILENAME).exists() else []]
     args = parser.parse_args(sys.argv[1:] + file_args)
-    print(args)
+    # print(args)
 
     # Check that data_dir exists
     camels_path = pathlib.Path(args.data_dir)
@@ -48,6 +51,7 @@ def main():
 
     # Make sure experiments_dir exists
     exp_root_dir = pathlib.Path(args.experiments_root_dir)
+    scratch_dir = exp_root_dir / '.scratch'
     if not exp_root_dir.exists():
         if not args.yes:
             print(f'experiments root path {exp_root_dir} does not exist')
@@ -57,15 +61,41 @@ def main():
                 sys.exit(0)
         print(f'Creating {exp_root_dir}')
         # Create .scratch folder too
-        scratch_dir = exp_root_dir / '.scratch'
         scratch_dir.mkdir(parents=True)
 
-    # Checks ok
-    print('Ready to go')
+    # Generate basin.yml from template
+    this_dir = pathlib.Path(__file__).parent
+    template_path = this_dir / 'template.basin.yml'
+    template = None
+    with open(template_path) as fp:
+        template_string = fp.read()
+        template = string.Template(template_string)
+    if template is None:
+        raise RuntimeError(f'Failed to read yml tempalte {template_path}')
+    basin_txt_path = scratch_dir / 'basin.txt'
+    template_dict = dict(
+        basin_txt_file=basin_txt_path.resolve(),
+        data_dir=camels_path.resolve()
+        )
+    yml = template.substitute(template_dict)
+
+    # Write basin.yml to scratch folder
+    yml_path = scratch_dir / 'basin.yml'
+    with open(yml_path, 'wt') as fp:
+        fp.write(yml)
+
+    # Ask if user is ready
+    if not args.yes:
+        reply = input(f'Ready to proceed with {args.step} step [y/N]? ')
+        if not reply or reply[0] not in ['y', 'Y']:
+            print('Exiting')
+            sys.exit(0)
 
     nh = LocalNH(args)
-    nh.run()
+    retval = nh.run()
+    print(f'run() returned {retval}')
 
 
 if __name__ == '__main__':
+    print('Starting execution')
     main()
