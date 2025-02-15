@@ -105,8 +105,15 @@ def main():
             sys.exit(0)
 
     nh = LocalNH(args)
-    retval = nh.run()
-    print(f'run() returned {retval}')
+    if args.step == 'train':
+        run_id: str = nh.run_training()
+        print(f'training return {run_id=}')
+    elif args.step == 'test':
+        results_dict: dict = nh.run_testing()
+        print('results_dict:')
+        print(results_dict)
+    else:
+        print(f'Unrecognized step argument {args.step}')
 
 
 if __name__ == '__main__':
