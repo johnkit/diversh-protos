@@ -94,7 +94,7 @@ num_workers: 8
 log_interval: 5
 
 # If true, writes logging results into tensorboard file
-log_tensorboard: True
+log_tensorboard: False
 
 # If a value and greater than 0, logs n random basins as figures during validation
 log_n_figures: 1
