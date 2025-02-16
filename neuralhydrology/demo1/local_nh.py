@@ -20,7 +20,7 @@ class LocalNH:
     def run_training(self) -> str:
         """Runs training based on passed in configuration.
 
-        Returns run_id
+        Returns run_id (or None)
         """
         # Set up experiment directory as cwd
         basin_dir = pathlib.Path(self.args.experiments_root_dir) / self.args.basin_id
@@ -36,11 +36,21 @@ class LocalNH:
         yml_path = self.scratch_dir / 'basin.yml'
         self._generate_config_file(yml_path)
 
+        # Because nh generates the run directory internally, we don't have access to
+        # the directory name used for the run. For now, we will infer the run_id by
+        # finding the latest run directory in the basin directory.
+        # We do this before and after training, to make sure that a new run directory
+        # was in fact created.
+        parent_dir = basin_dir / 'runs'
+        last_run_id = self._get_latest_run_id(parent_dir)
+
         # Call start_run() which does training and validation
         nh_run.start_run(yml_path)
 
-        # Todo get run id
-        return 'todo run_id'
+        # Get latest run_id which *should* be different than last_run_id
+        next_run_id = self._get_latest_run_id(parent_dir)
+        run_id = next_run_id if next_run_id != last_run_id else None
+        return run_id
 
     def run_testing(self) -> dict:
         """"""
@@ -85,3 +95,16 @@ class LocalNH:
         # Write basin.yml to scratch folder
         with open(yml_path, 'wt') as fp:
             fp.write(yml)
+
+    def _get_latest_run_id(self, parent_dir: pathlib.Path) -> str | None:
+        """Returns the most recent run_id in parent_dir."""
+        if not parent_dir.is_dir():
+            return None
+
+        run_dirs = \
+            [d for d in parent_dir.iterdir() if d.is_dir() and d.name.startswith('run_')]
+        if not run_dirs:
+            return None
+
+        latest_dir = max(run_dirs, key=os.path.getctime)
+        return latest_dir.name
