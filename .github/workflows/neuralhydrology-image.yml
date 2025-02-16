@@ -1,0 +1,32 @@
+name: build-and-push-neuralhydrology-image
+
+on:
+  push:
+    tags: neuralhydrology/*
+
+env:
+  GITHUB_REGISTRY: ghcr.io
+
+jobs:
+  build-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+      - name: Login to ghcr.io
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${{ github.actor }} --password-stdin ${{ env.GITHUB_REGISTRY }}
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push using buildx
+        run: |
+          docker buildx create --use
+          docker buildx inspect
+          cd neuralhydrology
+          docker buildx build \
+          --platform linux/amd64 \
+          -t ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/${{ github.ref_name }} \
+          -f neuralhydrology.dockerfile \
+          --push .
