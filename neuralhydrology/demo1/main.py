@@ -86,9 +86,9 @@ def main():
         run_id: str = nh.run_training()
         print(f'Training returned {run_id=}')
     elif args.step == 'test':
-        results_dict: dict = nh.run_testing()
-        print('Testing returned results_dict:')
-        print(results_dict)
+        results_ds = nh.run_testing()
+        print('Testing returned dataset:')
+        print(results_ds)
     else:
         print(f'Unrecognized step argument {args.step}')
 

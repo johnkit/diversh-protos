@@ -6,6 +6,8 @@ import pathlib
 import pickle
 import string
 
+import xarray as xr
+
 # Hard coded number of epochs; must must config.yaml file
 EPOCHS = 50
 
@@ -52,7 +54,7 @@ class LocalNH:
         run_id = next_run_id if next_run_id != last_run_id else None
         return run_id
 
-    def run_testing(self) -> dict:
+    def run_testing(self, write_nc: bool = True) -> xr.Dataset:
         """"""
         exp_dir = pathlib.Path(self.args.experiments_root_dir)
         run_dir = exp_dir / self.args.basin_id / 'runs' / self.args.run_id
@@ -66,10 +68,30 @@ class LocalNH:
             file_dict = pickle.load(fp)
             basin_dict = file_dict.get(self.args.basin_id, {})
             oned_dict = basin_dict.get('1D', {})
-            return oned_dict
 
-        # If we reached here, didn't get the results data
-        return dict()
+        # Sanity check
+        if not oned_dict:
+            return None
+
+        # Add NSE as attribute on xaray
+        xr_dataset = oned_dict.get('xr')
+        nse = oned_dict.get('NSE')
+        atts = dict(
+            NSE=nse,
+            basin=self.args.basin_id,
+            run=self.args.run_id,
+        )
+        ds = xr_dataset.assign_attrs(atts)
+
+        if write_nc:
+            rel_path = f'test/model_epoch{eps}/test_results.nc'
+            nc_path = run_dir / rel_path
+            ds.to_netcdf(nc_path)
+
+            head_path = f'{self.args.basin_id}/runs/{self.args.run_id}'
+            print(f' Wrote {head_path}/{rel_path}')
+
+        return ds
 
     def _generate_config_file(self, yml_path: pathlib.Path) -> None:
         """Generates basin.yml from template"""
