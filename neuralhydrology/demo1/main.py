@@ -4,9 +4,6 @@ import argparse
 import pathlib
 import sys
 
-print('Importing libs')
-from local_nh import LocalNH
-
 # Optional filename for command line args
 ARGS_FILENAME = '.args.txt'
 
@@ -44,7 +41,7 @@ def validate_inputs(args):
                 sys.exit(0)
         print(f'Creating {exp_root_dir}')
         # Create .scratch folder too
-        scratch_dir.mkdir(parents=True)
+        scratch_dir.mkdir(parents=True, exist_ok=True)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -63,7 +60,7 @@ def main():
     parser.add_argument('-y', '--yes', action='store_true', help='Run without confirmation')
 
     # Include ARGS_FILENAME if present
-    file_args = [f'@{ARGS_FILENAME}' if pathlib.Path(ARGS_FILENAME).exists() else []]
+    file_args = [f'@{ARGS_FILENAME}'] if pathlib.Path(ARGS_FILENAME).exists() else []
     args = parser.parse_args(sys.argv[1:] + file_args)
     # print(args)
 
@@ -81,6 +78,10 @@ def main():
             print('Exiting')
             sys.exit(0)
 
+    # Import LocalNH here, just so that we run argparse without the delay
+    print('Importing LocalNH')
+    from local_nh import LocalNH
+
     nh = LocalNH(args)
     if args.step == 'train':
         run_id: str = nh.run_training()
@@ -94,5 +95,4 @@ def main():
 
 
 if __name__ == '__main__':
-    print('Starting execution')
     main()
