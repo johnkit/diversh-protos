@@ -1,8 +1,7 @@
-name: build-and-push-neuralhydrology-image
+name: build-neuralhydrology-image
 
 on:
-  push:
-    tags: neuralhydrology/*
+  workflow_dispatch
 
 env:
   GITHUB_REGISTRY: ghcr.io
@@ -16,17 +15,25 @@ jobs:
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4
+
       - name: Login to ghcr.io
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${{ github.actor }} --password-stdin ${{ env.GITHUB_REGISTRY }}
+
+      - name: Get version
+        working-directory: ./neuralhydrology
+        run: echo "IMAGE_VERSION=$(cat neuralhydrology.version.txt)" >> $GITHUB_ENV
+
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Build and push using buildx
+        working-directory: ./neuralhydrology
         run: |
           docker buildx create --use
           docker buildx inspect
-          cd neuralhydrology
           docker buildx build \
-          --platform linux/amd64 \
-          -t ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/${{ github.ref_name }} \
-          -f neuralhydrology.dockerfile \
-          --push .
+            --platform linux/amd64 \
+            -t ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology:${IMAGE_VERSION} \
+            -f neuralhydrology.dockerfile \
+            --build-arg version=${IMAGE_VERSION} \
+            --push .
