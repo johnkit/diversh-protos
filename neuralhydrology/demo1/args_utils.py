@@ -21,7 +21,8 @@ def add_standard_arguments(parser: argparse.ArgumentParser):
     parser.add_argument('-b', '--basin_id', required=True, help='Basin id')
     parser.add_argument('-r', '--run_id',
         help='Run id for model (required for test step, not used for training)')
-    parser.add_argument('-y', '--yes', action='store_true', help='Run without confirmation')
+    parser.add_argument('-n', '--dry-run', action='store_true',
+        help='Dry run (to check input args for validity)')
 
 def validate_inputs(args: argparse.Namespace) -> None:
     """"""

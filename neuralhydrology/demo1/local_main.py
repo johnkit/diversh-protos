@@ -30,12 +30,11 @@ def main():
         print('Exiting')
         sys.exit(2)
 
-    # Ask if user is ready
-    if not args.yes:
-        reply = input(f'Ready to proceed with {args.step} step [y/N]? ')
-        if not reply or reply[0] not in ['y', 'Y']:
-            print('Exiting')
-            sys.exit(0)
+    # Check dry run option
+    if args.dry_run:
+        print('Input arguments valid')
+        print('Exiting (dry_run option specified)')
+        sys.exit(0)
 
     # Import BasinNH here, just so that we run argparse without the delay
     print('Importing BasinNH')
