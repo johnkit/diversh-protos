@@ -16,8 +16,8 @@ To build locally:
 Basic demo for single basin train & test
 
 `cd neuralhydrology`
-`python demo1/main.py -s train -b 02430085 -y`
-`python demo1/main.py -s test -b 02430085 -y -r run_1502_194916`
+`python demo1/local_main.py -s train -b 02430085 -y`
+`python demo1/local_main.py -s test -b 02430085 -y -r run_1502_194916`
 
 Will read .args.txt file if present. File contents, ,e.g.:
 ```
@@ -32,7 +32,7 @@ Will read .args.txt file if present. File contents, ,e.g.:
 
 To build
 `cd neuralhydrology/demo1`
-`docker build -f local.demo1.dockerfile -t nh/demo1 .`
+`docker build -f demo1.dockerfile -t nh/demo1 .`
 
 
 <!-- To run container
@@ -52,5 +52,5 @@ docker run --rm -it --gpus all \
 ```
 
 Then:
-* `python main.py -s train -d /data -e /experiments -b 02430085 -y`
-* `python main.py -s test -d /data -e /experiments -b 02430085 -y -r <RUN_ID>`
+* `python local_main.py -s train -d /data -e /experiments -b 02430085 -y`
+* `python local_main.py -s test -d /data -e /experiments -b 02430085 -y -r <RUN_ID>`
