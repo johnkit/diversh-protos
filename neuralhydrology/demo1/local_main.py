@@ -1,4 +1,6 @@
-"""Run neuralhyrology in local environment"""
+"""
+This script uses the BasinNH class to train and test neuralhyrology models.
+"""
 
 import argparse
 import pathlib
@@ -78,11 +80,11 @@ def main():
             print('Exiting')
             sys.exit(0)
 
-    # Import LocalNH here, just so that we run argparse without the delay
-    print('Importing LocalNH')
-    from local_nh import LocalNH
+    # Import BasinNH here, just so that we run argparse without the delay
+    print('Importing BasinNH')
+    from local_nh import BasinNH
 
-    nh = LocalNH(args)
+    nh = BasinNH(args)
     if args.step == 'train':
         run_id: str = nh.run_training()
         print(f'Training returned {run_id=}')

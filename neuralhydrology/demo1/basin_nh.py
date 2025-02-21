@@ -1,4 +1,12 @@
-"""Runs neural hydrology demos in local file system."""
+"""
+This module defines the BasinNH class, which is used for training and testing
+LSTM networks to model single watershed basin. It is a light wrapper around
+the Google neural hydrology package.
+
+The neural nydrology package uses the CAMEL-US dataset for historical weather
+and streamflow records. It writes results to an experiments directory specified
+in the input arguments.
+"""
 
 import argparse
 import os
@@ -8,14 +16,26 @@ import string
 
 import xarray as xr
 
-# Hard coded number of epochs; must must config.yaml file
+# Hard coded number of epochs; must match config.yaml file used for training
 EPOCHS = 50
 
 from neuralhydrology import nh_run
 
-class LocalNH:
+class BasinNH:
+    """A class for running Google neural hydrology code for a single basin.
+    """
     def __init__(self, args: argparse.Namespace):
-        """Calling code responsible for argument checking."""
+        """
+        Initializes a BasinNH object.
+
+        Input args must include the following
+        * data_dir - the root of the CAMELS-US dataset
+        * experiments_root_dir - which must already exist
+        * basin_id - 8 digit id of one entry in CAMELS-US
+        * run_id - folder where model is stored (only required for testing steps)
+
+        Note: The calling code responsible for argument checking.
+        """
         self.args = args
         self.scratch_dir = pathlib.Path(self.args.experiments_root_dir) / '.scratch'
 
