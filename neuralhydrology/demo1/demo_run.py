@@ -56,7 +56,7 @@ class DemoRun:
             print(f'Unexpected error occurred: {e}')
             return None
 
-    def execute(self) -> None:
+    def execute(self, basin_id: str, keep_container=False) -> None:
         """"
         Carries out full model train & test:
         * Check for image
@@ -73,12 +73,13 @@ class DemoRun:
         self._check_for_container()
         self._start_container()
 
-        # print('Waiting 3 seconds')
-        # time.sleep(3)
-        self._run_training()
-        self._run_testing()
+        run_id = self._run_training(basin_id)
+        self._run_testing(run_id)
 
-        self._stop_container()
+        if keep_container:
+            print(f'Leaving container {CONTAINER_NAME} running')
+        else:
+            self._stop_container()
 
     def _check_for_container(self):
         """Checks for running container and stops it if found."""
@@ -102,13 +103,33 @@ class DemoRun:
             ' tail -f /dev/null'
         _result = self._run_command(command)
 
-    def _run_training(self):
+    def _run_training(self, basin_id: str) -> str:
         """"""
-        pass
+        command = self._create_nh_command('train', basin_id)
+        if self.verbose:
+            print(f'{command=}')
 
-    def _run_testing(self):
+        # Run process and capture live messages
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        while True:
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            if output:
+                print(output.strip())
+        rc = process.poll()
+        print(f'return code {rc}')
+
+        return 'run_1111_2222'
+
+    def _run_testing(self, run_id: str):
         """"""
-        pass
+        print('Testing TBD')
 
     def _stop_container(self):
         """Stops container."""
@@ -135,3 +156,22 @@ class DemoRun:
         if self.verbose:
             print(f'{result=}')
         return result
+
+    def _create_nh_command(self, step: str, basin_id: str, run_id: str = None) -> list:
+        """"""
+        python_command = [
+            'python', 'local_main.py',
+            '--step', step,
+            '--data_dir', '/data',
+            '--experiments_dir', '/experiments',
+            '--basin_id', basin_id,
+        ]
+        if run_id is not None:
+            command += ['--run_id', run_id]
+
+        run_command = [
+            self.engine, 'run', '--rm', '-t', '--gpus', 'all',
+            '--mount', f'type=bind,src={self.data_dir},dst=/data,readonly',
+            'nh/demo1',
+        ]
+        return run_command + python_command

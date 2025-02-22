@@ -23,9 +23,10 @@ def main():
         epilog=f'Note: You can also put arguments in {ARGS_FILENAME} file',
         fromfile_prefix_chars='@')
     add_standard_arguments(parser)
-
     parser.add_argument('-l', '--local_image_build', action='store_true',
         help='use locally built docker image')
+    parser.add_argument('-k', '--keep_container', action='store_true',
+        help='keep container running (dont stop)')
 
     # Include ARGS_FILENAME if present
     file_args = [f'@{ARGS_FILENAME}'] if pathlib.Path(ARGS_FILENAME).exists() else []
@@ -50,7 +51,7 @@ def main():
             sys.exit(1)
 
     print('Image was found!')
-    runner.execute()
+    runner.execute(args.basin_id, args.keep_container)
 
 if __name__ == '__main__':
     main()
