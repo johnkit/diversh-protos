@@ -23,6 +23,8 @@ def add_standard_arguments(parser: argparse.ArgumentParser):
         help='Run id for model (required for test step, not used for training)')
     parser.add_argument('-n', '--dry-run', action='store_true',
         help='Dry run (to check input args for validity)')
+    parser.add_argument('-v', '--verbose', action='store_true',
+        help='print details')
 
 def validate_inputs(args: argparse.Namespace) -> None:
     """"""
