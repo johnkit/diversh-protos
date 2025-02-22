@@ -16,7 +16,7 @@ def main():
         description=__doc__,
         epilog=f'Note: You can also put arguments in {ARGS_FILENAME} file',
         fromfile_prefix_chars='@')
-    add_standard_arguments(parser)
+    add_standard_arguments(parser, with_step=True)
 
     # Include ARGS_FILENAME if present
     file_args = [f'@{ARGS_FILENAME}'] if pathlib.Path(ARGS_FILENAME).exists() else []

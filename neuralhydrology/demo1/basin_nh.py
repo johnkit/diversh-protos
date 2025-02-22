@@ -30,14 +30,14 @@ class BasinNH:
 
         Input args must include the following
         * data_dir - the root of the CAMELS-US dataset
-        * experiments_root_dir - which must already exist
+        * experiments_dir - which must already exist
         * basin_id - 8 digit id of one entry in CAMELS-US
         * run_id - folder where model is stored (only required for testing steps)
 
         Note: The calling code responsible for argument checking.
         """
         self.args = args
-        self.scratch_dir = pathlib.Path(self.args.experiments_root_dir) / '.scratch'
+        self.scratch_dir = pathlib.Path(self.args.experiments_dir) / '.scratch'
 
     def run_training(self) -> str:
         """Runs training based on passed in configuration.
@@ -45,7 +45,7 @@ class BasinNH:
         Returns run_id (or None)
         """
         # Set up experiment directory as cwd
-        basin_dir = pathlib.Path(self.args.experiments_root_dir) / self.args.basin_id
+        basin_dir = pathlib.Path(self.args.experiments_dir) / self.args.basin_id
         basin_dir.mkdir(exist_ok=True)
         os.chdir(basin_dir)
 
@@ -76,7 +76,7 @@ class BasinNH:
 
     def run_testing(self, write_nc: bool = True) -> xr.Dataset:
         """"""
-        exp_dir = pathlib.Path(self.args.experiments_root_dir)
+        exp_dir = pathlib.Path(self.args.experiments_dir)
         run_dir = exp_dir / self.args.basin_id / 'runs' / self.args.run_id
         # print(f'{run_dir=}')
         nh_run.eval_run(run_dir, 'test')
