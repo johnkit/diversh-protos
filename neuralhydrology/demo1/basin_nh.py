@@ -16,9 +16,6 @@ import string
 
 import xarray as xr
 
-# Hard coded number of epochs; must match config.yaml file used for training
-EPOCHS = 50
-
 from neuralhydrology import nh_run
 from constants import RUN_ID_FILENAME
 
@@ -89,9 +86,16 @@ class BasinNH:
         # print(f'{run_dir=}')
         nh_run.eval_run(run_dir, 'test')
 
+        # Find the latest results directory
+        test_dir = run_dir / 'test'
+        model_dir = self._get_latest_dir(test_dir, 'model_epoch')
+        # print(f'{model_dir=}')
+
+        # Get epoch count from the directory name
+        epochs = self._get_epoch_count(model_dir.name)
+
         # Get the results file and return dataset
-        eps = f'{EPOCHS:03d}'
-        results_path = run_dir / f'test/model_epoch{eps}/test_results.p'
+        results_path = model_dir / 'test_results.p'
         with open(results_path, 'rb') as fp:
             file_dict = pickle.load(fp)
             basin_dict = file_dict.get(self.args.basin_id, {})
@@ -108,16 +112,14 @@ class BasinNH:
             NSE=nse,
             basin=self.args.basin_id,
             run=self.args.run_id,
+            epochs=epochs,
         )
         ds = xr_dataset.assign_attrs(atts)
 
         if write_nc:
-            rel_path = f'test/model_epoch{eps}/test_results.nc'
-            nc_path = run_dir / rel_path
+            nc_path = model_dir / 'test_results.nc'
             ds.to_netcdf(nc_path)
-
-            head_path = f'{self.args.basin_id}/runs/{self.args.run_id}'
-            print(f' Wrote {head_path}/{rel_path}')
+            print(f' Wrote {nc_path}')
 
         return ds
 
@@ -139,6 +141,7 @@ class BasinNH:
         template_dict = dict(
             basin_txt_file=basin_txt_path.resolve(),
             data_dir=data_dir,
+            training_epochs=self.args.training_epochs,
             )
         yml = template.substitute(template_dict)
 
@@ -158,3 +161,34 @@ class BasinNH:
 
         latest_dir = max(run_dirs, key=os.path.getctime)
         return latest_dir.name
+
+    def _get_latest_dir(self, parent_dir: pathlib.Path, prefix: str) -> pathlib.Path | None:
+        """Returns the most recent subdirectory with given prefix."""
+        if not parent_dir.is_dir():
+            return None
+
+        child_dirs = \
+            [d for d in parent_dir.iterdir() if d.is_dir() and d.name.startswith(prefix)]
+        if not child_dirs:
+            return None
+
+        latest_dir = max(child_dirs, key=os.path.getctime)
+        return latest_dir
+
+    def _get_epoch_count(self, dirname: str) -> int:
+        """Extract epoch count from test directory name.
+
+        Expected format is model_epoch050 e.g.
+        """
+        pattern = 'model_epoch'
+        if not dirname.startswith(pattern):
+            return -1  # unknown
+
+        pos = len(pattern)
+        try:
+            epochs = int(dirname[pos:])
+        except ValueError:
+            print(f'Error: cannot extract epochs from directory name {dirname}')
+            return -1
+
+        return epochs

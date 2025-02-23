@@ -9,23 +9,26 @@ import sys
 
 # Optional filename for command line args
 ARGS_FILENAME = '.args.txt'
+DEFAULT_EPOCHS = 50
 
 
 def add_standard_arguments(parser: argparse.ArgumentParser, with_step: bool = False):
     """Configures standard arguments for local or container scripts."""
     if with_step:
         parser.add_argument('-s', '--step',
-            required=True, choices=['train', 'test'], help='select train or test')
+            required=True, choices=['train', 'test'], help='Select train or test')
     parser.add_argument('-d', '--data_dir', required=True, help='Path to CAMELS_US dataset')
     parser.add_argument('-e', '--experiments_dir', required=True,
         help='Directory for saving results')
     parser.add_argument('-b', '--basin_id', required=True, help='Basin id')
     parser.add_argument('-r', '--run_id',
         help='Run id for model (required for test step, not used for training)')
+    parser.add_argument('-t', '--training_epochs', type=int, default=f'{DEFAULT_EPOCHS}',
+        help=f'Number of training epochs [{DEFAULT_EPOCHS}]')
     parser.add_argument('-n', '--dry-run', action='store_true',
         help='Dry run (to check input args for validity)')
     parser.add_argument('-v', '--verbose', action='store_true',
-        help='print details')
+        help='Print more info to stdout')
 
 def validate_inputs(args: argparse.Namespace) -> None:
     """"""
