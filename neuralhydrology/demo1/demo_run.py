@@ -58,7 +58,7 @@ class DemoRun:
             print(f'Unexpected error occurred: {e}')
             return None
 
-    def execute(self, basin_id: str, keep_container=False) -> None:
+    def execute(self, basin_id: str, epochs: int = None, keep_container=False) -> None:
         """"
         Carries out full model train & test:
         * Check for image
@@ -76,7 +76,7 @@ class DemoRun:
             self._check_for_container()
             self._start_container()
 
-            self._run_training(basin_id)
+            self._run_training(basin_id, epochs=epochs)
             run_id = self._get_run_id()
             self._run_testing(basin_id, run_id)
             #self._copy_results()
@@ -110,12 +110,12 @@ class DemoRun:
             ' tail -f /dev/null'
         _result = self._run_command(command)
 
-    def _run_training(self, basin_id: str):
+    def _run_training(self, basin_id: str, epochs: int = None):
         """Invokes the BasinNH.run_training method in the container."""
         if self.verbose:
             print('Begin training sequence...')
 
-        command = self._create_nh_command('train', basin_id)
+        command = self._create_nh_command('train', basin_id, epochs=epochs)
         if self.verbose:
             print(f'{command=}')
 
@@ -156,7 +156,7 @@ class DemoRun:
         if self.verbose:
             print(f'Begin testing sequence, {basin_id=}, {run_id=}...')
 
-        command = self._create_nh_command('test', basin_id, run_id)
+        command = self._create_nh_command('test', basin_id, run_id=run_id)
         if self.verbose:
             print(f'{command=}')
 
@@ -208,7 +208,8 @@ class DemoRun:
         rc = process.poll()
         return rc
 
-    def _create_nh_command(self, step: str, basin_id: str, run_id: str = None) -> list:
+    def _create_nh_command(self,
+                step: str, basin_id: str, run_id: str = None, epochs: int = None) -> list:
         """"""
         python_command = [
             'python', 'local_main.py',
@@ -217,7 +218,9 @@ class DemoRun:
             '--experiments_dir', '/experiments',
             '--basin_id', basin_id,
         ]
-        if run_id is not None:
+        if epochs:
+            python_command += ['--training_epochs', str(epochs)]
+        if run_id:
             python_command += ['--run_id', run_id]
 
         run_command = [self.engine, 'exec','-t', CONTAINER_NAME]

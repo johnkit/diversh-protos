@@ -51,7 +51,7 @@ def main():
             sys.exit(1)
 
     print('Image was found!')
-    runner.execute(args.basin_id, args.keep_container)
+    runner.execute(args.basin_id, epochs=args.training_epochs, keep_container=args.keep_container)
 
 if __name__ == '__main__':
     main()
