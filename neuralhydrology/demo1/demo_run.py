@@ -58,7 +58,11 @@ class DemoRun:
             print(f'Unexpected error occurred: {e}')
             return None
 
-    def execute(self, basin_id: str, epochs: int = None, keep_container=False) -> None:
+    def execute(self,
+            basin_id: str,
+            host_experiments_dir: pathlib.Path | str,
+            epochs: int|None = None,
+            keep_container=False) -> None:
         """"
         Carries out full model train & test:
         * Check for image
@@ -79,7 +83,7 @@ class DemoRun:
             self._run_training(basin_id, epochs=epochs)
             run_id = self._get_run_id()
             self._run_testing(basin_id, run_id)
-            #self._copy_results()
+            self._copy_run_directory(basin_id, run_id, host_experiments_dir)
         except Exception:
             raise
         finally:
@@ -163,6 +167,25 @@ class DemoRun:
         rc = self._run_command_with_output(command)
         if rc != 0:
             raise RuntimeError(f'Error: return code {rc}')
+
+    def _copy_run_directory(self,
+                basin_id: str,
+                run_id: str,
+                host_experiments_dir: pathlib.Path):
+        """Copies run directory to from container to host."""
+        if self.verbose:
+            print(f'Copying run directory to host...')
+
+        # Make sure runs dir is on host machine
+        host_dir = host_experiments_dir / f'{basin_id}/runs'
+        host_dir.mkdir(parents=True, exist_ok=True)
+
+        run_dir = f'/experiments/{basin_id}/runs/{run_id}'
+        command = f'{self.engine} cp {CONTAINER_NAME}:{run_dir} {str(host_dir)}'
+        _result = self._run_command(command)
+
+        host_run_dir = host_dir / run_id
+        print(f'Wrote {host_run_dir}')
 
     def _stop_container(self):
         """Stops container."""
