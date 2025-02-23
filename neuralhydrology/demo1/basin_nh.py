@@ -151,15 +151,7 @@ class BasinNH:
 
     def _get_latest_run_id(self, parent_dir: pathlib.Path) -> str | None:
         """Returns the most recent run_id in parent_dir."""
-        if not parent_dir.is_dir():
-            return None
-
-        run_dirs = \
-            [d for d in parent_dir.iterdir() if d.is_dir() and d.name.startswith('run_')]
-        if not run_dirs:
-            return None
-
-        latest_dir = max(run_dirs, key=os.path.getctime)
+        latest_dir = self._get_latest_dir(parent_dir, 'run_')
         return latest_dir.name
 
     def _get_latest_dir(self, parent_dir: pathlib.Path, prefix: str) -> pathlib.Path | None:

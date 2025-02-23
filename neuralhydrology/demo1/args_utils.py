@@ -56,7 +56,7 @@ def validate_inputs(args: argparse.Namespace) -> None:
     exp_dir = pathlib.Path(args.experiments_dir)
     scratch_dir = exp_dir / '.scratch'
     if not exp_dir.exists():
-        if not args.yes:
+        if not args.dry_run:
             print(f'experiments root path {exp_dir} does not exist')
             reply = input('OK to create [y/N]? ')
             if not reply or reply[0] not in ['y', 'Y']:
