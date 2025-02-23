@@ -6,7 +6,9 @@ Uses container operations.
 
 import pathlib
 import subprocess
-import time
+import tempfile
+
+from .constants import RUN_ID_FILENAME
 
 CONTAINER_NAME = 'demo1.run'
 DEFAULT_ENGINE = 'docker'
@@ -15,13 +17,13 @@ class DemoRun:
     """A class for performing container-based hydrology operations.
     """
     def __init__(self,
-            container_image: str,
+            image_name: str,
             data_directory: str|pathlib.Path,
             engine: str=DEFAULT_ENGINE,
             verbose: bool=False,
             ):
         self.data_dir = data_directory
-        self.image_name = container_image
+        self.image_name = image_name
         self.engine = engine
         self.verbose = verbose
 
@@ -70,16 +72,21 @@ class DemoRun:
         Note: caller is responsible for making image available
         """
         # Future: ?check for image and pull if needed
-        self._check_for_container()
-        self._start_container()
+        try:
+            self._check_for_container()
+            self._start_container()
 
-        run_id = self._run_training(basin_id)
-        self._run_testing(run_id)
-
-        if keep_container:
-            print(f'Leaving container {CONTAINER_NAME} running')
-        else:
-            self._stop_container()
+            self._run_training(basin_id)
+            run_id = self._get_run_id()
+            self._run_testing(basin_id, run_id)
+            #self._copy_results()
+        except Exception:
+            raise
+        finally:
+            if keep_container:
+                print(f'Leaving container {CONTAINER_NAME} running')
+            else:
+                self._stop_container()
 
     def _check_for_container(self):
         """Checks for running container and stops it if found."""
@@ -103,33 +110,59 @@ class DemoRun:
             ' tail -f /dev/null'
         _result = self._run_command(command)
 
-    def _run_training(self, basin_id: str) -> str:
-        """"""
+    def _run_training(self, basin_id: str):
+        """Invokes the BasinNH.run_training method in the container."""
+        if self.verbose:
+            print('Begin training sequence...')
+
         command = self._create_nh_command('train', basin_id)
         if self.verbose:
             print(f'{command=}')
 
-        # Run process and capture live messages
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        while True:
-            output = process.stdout.readline()
-            if output == '' and process.poll() is not None:
-                break
-            if output:
-                print(output.strip())
-        rc = process.poll()
-        print(f'return code {rc}')
+        rc = self._run_command_with_output(command)
+        if rc != 0:
+            raise RuntimeError(f'Error: return code {rc}')
 
-        return 'run_1111_2222'
+    def _get_run_id(self) -> str|None:
+        """Gets run_id from from container file designated for this.
 
-    def _run_testing(self, run_id: str):
-        """"""
-        print('Testing TBD')
+        This code hinges on the BasinNH.run_training() code in the container
+        writing a file to the /experiments/.scratch directory. We should
+        probably using a shared config file to keep the host and container
+        in sync.
+        """
+        if self.verbose:
+            print('Retrieving last run_id from container...')
+
+        # Training code in container writes run_id to file in scratch directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            src_file = f'/experiments/.scratch/{RUN_ID_FILENAME}'
+            command = f'{self.engine} cp {CONTAINER_NAME}:{src_file} {temp_dir}'
+            result = self._run_command(command)
+            if result.returncode != 0:
+                raise RuntimeError('Error: failed to retrieve run_id from container')
+
+            run_id = None
+            dst_path = pathlib.Path(temp_dir) / RUN_ID_FILENAME
+            with open(dst_path) as fp:
+                content = fp.read()
+                if content.startswith('run_'):
+                    run_id = content
+
+        return run_id
+
+    def _run_testing(self, basin_id: str, run_id: str):
+        """Invokes the BasinNH.run_testing method in the container."""
+        if self.verbose:
+            print(f'Begin testing sequence, {basin_id=}, {run_id=}...')
+
+        command = self._create_nh_command('test', basin_id, run_id)
+        if self.verbose:
+            print(f'{command=}')
+
+        rc = self._run_command_with_output(command)
+        if rc != 0:
+            raise RuntimeError(f'Error: return code {rc}')
 
     def _stop_container(self):
         """Stops container."""
@@ -140,7 +173,7 @@ class DemoRun:
         command = f'{self.engine} rm {CONTAINER_NAME}'
         _result = self._run_command(command)
 
-    def _run_command(self, command: str|list) -> None:
+    def _run_command(self, command: str|list) -> subprocess.CompletedProcess:
         """"""
         cmd = command.split() if isinstance(command, str) else command
         result = None
@@ -157,6 +190,24 @@ class DemoRun:
             print(f'{result=}')
         return result
 
+    def _run_command_with_output(self, command: str | list) -> int:
+        cmd = command.split() if isinstance(command, str) else command
+        # Run process and capture live messages
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        while True:
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            if output:
+                print(output.strip())
+        rc = process.poll()
+        return rc
+
     def _create_nh_command(self, step: str, basin_id: str, run_id: str = None) -> list:
         """"""
         python_command = [
@@ -167,11 +218,7 @@ class DemoRun:
             '--basin_id', basin_id,
         ]
         if run_id is not None:
-            command += ['--run_id', run_id]
+            python_command += ['--run_id', run_id]
 
-        run_command = [
-            self.engine, 'run', '--rm', '-t', '--gpus', 'all',
-            '--mount', f'type=bind,src={self.data_dir},dst=/data,readonly',
-            'nh/demo1',
-        ]
+        run_command = [self.engine, 'exec','-t', CONTAINER_NAME]
         return run_command + python_command

@@ -20,6 +20,7 @@ import xarray as xr
 EPOCHS = 50
 
 from neuralhydrology import nh_run
+from constants import RUN_ID_FILENAME
 
 class BasinNH:
     """A class for running Google neural hydrology code for a single basin.
@@ -72,6 +73,13 @@ class BasinNH:
         # Get latest run_id which *should* be different than last_run_id
         next_run_id = self._get_latest_run_id(parent_dir)
         run_id = next_run_id if next_run_id != last_run_id else None
+
+        # Write run_id to file in scratch directory
+        path = self.scratch_dir / RUN_ID_FILENAME
+        with open(path, 'w') as fp:
+            text = 'missing' if run_id is None else run_id
+            fp.write(text)
+
         return run_id
 
     def run_testing(self, write_nc: bool = True) -> xr.Dataset:
