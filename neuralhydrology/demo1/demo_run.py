@@ -35,8 +35,7 @@ class DemoRun:
             * False otherwise
             * None on error
         """
-        if self.verbose:
-            print(f'Checking for docker image {self.image_name}')
+        print(f'Checking for docker image {self.image_name}')
         try:
             result = subprocess.run(
                 [self.engine, 'inspect', self.image_name],
@@ -94,8 +93,7 @@ class DemoRun:
 
     def _check_for_container(self):
         """Checks for running container and stops it if found."""
-        if self.verbose:
-            print(f'Checking for extant "{CONTAINER_NAME}" container')
+        print(f'Checking for extant "{CONTAINER_NAME}" container')
 
         command = f'{self.engine} ps -a -f name={CONTAINER_NAME} -q'
         result = self._run_command(command)
@@ -106,8 +104,7 @@ class DemoRun:
 
     def _start_container(self):
         """Runs container in detached mode."""
-        if self.verbose:
-            print('Starting container...')
+        print('Starting container...')
         command = f'{self.engine} run --gpus all --detach --restart always' + \
             f' --name {CONTAINER_NAME}' + \
             f' --mount type=bind,src={self.data_dir},dst=/data,readonly {self.image_name}' + \
@@ -116,8 +113,7 @@ class DemoRun:
 
     def _run_training(self, basin_id: str, epochs: int = None):
         """Invokes the BasinNH.run_training method in the container."""
-        if self.verbose:
-            print('Begin training sequence...')
+        print('Begin training sequence...')
 
         command = self._create_nh_command('train', basin_id, epochs=epochs)
         if self.verbose:
@@ -135,8 +131,7 @@ class DemoRun:
         probably using a shared config file to keep the host and container
         in sync.
         """
-        if self.verbose:
-            print('Retrieving last run_id from container...')
+        print('Retrieving last run_id from container...')
 
         # Training code in container writes run_id to file in scratch directory
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -157,8 +152,7 @@ class DemoRun:
 
     def _run_testing(self, basin_id: str, run_id: str):
         """Invokes the BasinNH.run_testing method in the container."""
-        if self.verbose:
-            print(f'Begin testing sequence, {basin_id=}, {run_id=}...')
+        print(f'Begin testing sequence, {basin_id=}, {run_id=}...')
 
         command = self._create_nh_command('test', basin_id, run_id=run_id)
         if self.verbose:
@@ -173,8 +167,7 @@ class DemoRun:
                 run_id: str,
                 host_experiments_dir: pathlib.Path):
         """Copies run directory to from container to host."""
-        if self.verbose:
-            print(f'Copying run directory to host...')
+        print(f'Copying run directory to host...')
 
         # Make sure runs dir is on host machine
         host_dir = host_experiments_dir / f'{basin_id}/runs'
@@ -189,8 +182,7 @@ class DemoRun:
 
     def _stop_container(self):
         """Stops container."""
-        if self.verbose:
-            print('Stopping container...')
+        print('Stopping container...')
         command = f'{self.engine} stop -t 5 {CONTAINER_NAME}'
         _result = self._run_command(command)
         command = f'{self.engine} rm {CONTAINER_NAME}'
