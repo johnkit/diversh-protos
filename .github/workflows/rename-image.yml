@@ -1,0 +1,38 @@
+name: rename-neuralhydrology-image
+# A temporary script to rename neuralhydrology image
+# From neuralhydrology:$version to neuralhyrdology/base:$version
+
+on:
+  workflow_dispatch
+
+env:
+  GITHUB_REGISTRY: ghcr.io
+
+jobs:
+  build-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+
+      - name: Login to ghcr.io
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${{ github.actor }} --password-stdin ${{ env.GITHUB_REGISTRY }}
+
+      - name: Get version
+        working-directory: ./neuralhydrology
+        run: echo "IMAGE_VERSION=$(cat neuralhydrology.version.txt)" >> $GITHUB_ENV
+
+      - name: Pull existing image
+        run: docker pull ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology:${IMAGE_VERSION}
+
+      - name: Add "base" tag
+        run: docker tag ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology:${IMAGE_VERSION} ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology/base:${IMAGE_VERSION}
+
+      - name: Push renamed image
+        run: docker push ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology/base:${IMAGE_VERSION}
+
+      - name: Delete the previous tag
+        run: docker push ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology:${IMAGE_VERSION} --delete

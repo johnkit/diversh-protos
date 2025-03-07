@@ -9,7 +9,8 @@ the Google NeuralHydrology package.
 To build locally:
 
 `cd neuralhydrology`
-`docker build -f neuralhydrology.dockerfile -t neuralhydrology:v1.11.0 --build-arg version=v1.11.0 .`
+`VERSION=$(cat neuralhydrology.version.txt) && docker build -f neuralhydrology.dockerfile -t neuralhydrology:${VERSION} .`
+
 
 ## neuralhydrology/demo1
 

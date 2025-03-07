@@ -1,8 +1,10 @@
-FROM python:3.12-slim
+FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime
 
-# Version must be passed in
-ARG version
-RUN if [ -z "$version" ]; then echo "version is required" && exit 1; fi
+# Setup verson env
+COPY neuralhydrology.version.txt /tmp/version.txt
+RUN VERSION=$(cat /tmp/version.txt) && \
+    echo "export VERSION=\"$VERSION\"" > /tmp/version.env
+RUN . /tmp/version.env && echo Building version ${VERSION}
 
 # System packages
 # (none)
@@ -11,9 +13,9 @@ RUN if [ -z "$version" ]; then echo "version is required" && exit 1; fi
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN pip install -U pip
+# RUN pip install -U pip
 
-RUN pip install neuralhydrology==${version}
+RUN . /tmp/version.env && pip install neuralhydrology==$VERSION
 
 # Aliases
 RUN echo "alias ll='ls -al'" >> /root/.bashrc

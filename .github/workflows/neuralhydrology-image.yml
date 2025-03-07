@@ -33,7 +33,6 @@ jobs:
           docker buildx inspect
           docker buildx build \
             --platform linux/amd64 \
-            -t ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology:${IMAGE_VERSION} \
+            -t ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology/base:${IMAGE_VERSION} \
             -f neuralhydrology.dockerfile \
-            --build-arg version=${IMAGE_VERSION} \
             --push .
