@@ -1,0 +1,39 @@
+name: build-demo1-image
+
+on:
+  workflow_dispatch
+
+env:
+  GITHUB_REGISTRY: ghcr.io
+
+jobs:
+  build-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+
+      - name: Login to ghcr.io
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${{ github.actor }} --password-stdin ${{ env.GITHUB_REGISTRY }}
+
+      - name: Get version
+        working-directory: ./neuralhydrology/demo1
+        run: echo "IMAGE_VERSION=$(cat demo1.version.txt)" >> $GITHUB_ENV
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push using buildx
+        working-directory: ./neuralhydrology/demo1
+        run: |
+          docker buildx create --use
+          docker buildx inspect
+          docker buildx build \
+            --platform linux/amd64 \
+            --build-arg BASE_IMAGE=ghcr.io/johnkit/neuralhydrology/base:v1.11.0 \
+            -t ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology/demo1:${IMAGE_VERSION} \
+            -f demo1.dockerfile \
+            --push .

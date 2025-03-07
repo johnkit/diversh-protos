@@ -14,7 +14,12 @@ To build locally:
 
 ## neuralhydrology/demo1
 
-Basic demo for single basin train & test
+To build locally:
+
+`cd neuralhydrology/demo1`
+`VERSION=$(cat demo1.version.txt) && docker build -f demo1.dockerfile -t demo1:${VERSION} .`
+
+Local demo for single basin train & test
 
 `cd neuralhydrology`
 `python demo1/local_main.py -s train -b 02430085`

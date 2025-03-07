@@ -34,5 +34,6 @@ jobs:
       - name: Push renamed image
         run: docker push ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology/base:${IMAGE_VERSION}
 
-      - name: Delete the previous tag
-        run: docker push ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology:${IMAGE_VERSION} --delete
+      # Next step failed with "unknown flag --delete"
+      # - name: Delete the previous tag
+      #   run: docker push ${{ env.GITHUB_REGISTRY }}/${{ github.repository_owner }}/neuralhydrology:${IMAGE_VERSION} --delete

@@ -1,4 +1,6 @@
-FROM neuralhydrology:v1.11.0
+ARG BASE_IMAGE=neuralhydrology:v1.11.0
+FROM ${BASE_IMAGE}
+
 
 RUN mkdir -p /experiments/.scratch
 
