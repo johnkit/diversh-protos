@@ -9,7 +9,7 @@ the Google NeuralHydrology package.
 To build locally:
 
 `cd neuralhydrology`
-`VERSION=$(cat neuralhydrology.version.txt) && docker build -f neuralhydrology.dockerfile -t neuralhydrology:${VERSION} .`
+`VERSION=$(cat neuralhydrology.version.txt) && docker build -f neuralhydrology.dockerfile -t neuralhydrology/base:${VERSION} .`
 
 
 ## neuralhydrology/demo1
@@ -17,7 +17,7 @@ To build locally:
 To build locally:
 
 `cd neuralhydrology/demo1`
-`VERSION=$(cat demo1.version.txt) && docker build -f demo1.dockerfile -t demo1:${VERSION} .`
+`VERSION=$(cat demo1.version.txt) && docker build -f demo1.dockerfile -t neuralhydrology/demo1:${VERSION} .`
 
 Local demo for single basin train & test
 
@@ -60,3 +60,7 @@ docker run --rm -it --gpus all \
 Then:
 * `python local_main.py -s train -d /data -e /experiments -b 02430085`
 * `python local_main.py -s test -d /data -e /experiments -b 02430085 -r <RUN_ID>`
+
+To run the standalone demo:
+`cd neuralhydrology`
+`python demo.py -s train -d /data -e /experiments -b 02430085 -r <RUN_ID>`

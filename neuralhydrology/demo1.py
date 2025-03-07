@@ -1,5 +1,7 @@
 """
 This script uses the demo1 container image to train and test neuralhyrology models.
+
+On turtleland4, use venv ~/.py3-venv/neuralhydrology
 """
 
 import argparse
@@ -12,7 +14,7 @@ from demo1.demo_run import DemoRun
 # Container image constants
 #[registry-hostname]/[username/organization-name]/[image-name]:[tag]
 IMAGE_REGISTRY_USER = 'ghcr.io/johnkit'
-IMAGE_NAME = 'nh/demo1:latest'
+IMAGE_NAME = 'neuralhydrology/demo1:1.0.0'
 
 # Optional filename for command line args
 ARGS_FILENAME = '.args.txt'
