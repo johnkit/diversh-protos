@@ -1,6 +1,12 @@
 # Neural Hydrology Demo1
 March 2025
 
+This package provides scripts to run the Google Neural Hydrology modeling tools
+for watershed basins, using data recorded in the CAMELS-US dataset. The software
+uses a container image at `ghcr.io/johnkit/neuralhydrology/demo1:1.0.0` to run
+the pytorch computations. The image requries a container environment with GPU
+support.
+
 ## Installing Demo1
 
 To install, run the `install_demo1.sh` script, passing in 2 filesystem paths
@@ -11,26 +17,31 @@ USAGE: install_demo.sh  DataDirectory  ExperimentsDirectory
 * "ExperimentsDirectory" is where neuralhydrology runs will be stored
 ```
 
-This will pull the container image and download/unzip the CAMELS-US dataset.
-The installer also creates a file named `.args.txt` in the app directory, which
-stores the locations of the data and experiments directory
+The `install_demo1.sh` script will:
+  1. Pull the container image for running the pytorch training and testing (6.5 GB).
+  2. Download and unzip the CAMELS-US dataset (14 GB).
+  3. Create a file named `.args.txt` in the app directory, to store the locaions
+     of the data and experiments directory.
+  4. Copy a `run_install.sh` script to this directory.
 
 ## Running Demo1
 
-To run:
+A bash script is provided to run the demo. The only required input is the ID of one basin
+in the CAMELS-US dataset.
 
 ```
 run_demo1.sh  -b BASIN_ID
 ```
 
-The script will:
+The `run_demo1.sh` script will:
   1. Train a LSTM model for the specified basin, using settings in the app/demo1/template.basin.yml file
   2. Test the LSTM model
-  3. Output a netCDF file with the test results (observed and simulated streamflow)
+  3. Output a netCDF file with the test results (observed and simulated streamflow).
+     The location of the netcdf file will be listed at the end of the terminal output.
 
 ## Run Options
 
-The bash script just calls a python script in the `app` directory The usage for the python script is:
+The bash script just calls a python script in the `app` directory. The usage for the python script is:
 
 
 ```
@@ -57,4 +68,4 @@ options:
   -k, --keep_container  keep container running (dont stop)
 
 Note: You can also put arguments in .args.txt file
-````
+```

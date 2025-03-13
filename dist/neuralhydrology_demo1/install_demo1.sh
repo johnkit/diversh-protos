@@ -47,7 +47,10 @@ echo ${DATA_DIR} >> ${ARGS_FILE}/basin_dataset_public_v1p2
 echo "--experiments_dir" >> ${ARGS_FILE}
 echo ${EXP_DIR} >> ${ARGS_FILE}
 
+# Copy run_demo1.sh to this dir
+cp ${SCRIPT_DIR}/.install/run_demo1.sh ${SCRIPT_DIR}
+
 # Finis
 echo "Install finished"
 echo "To run:"
-echo "  python3 app/demo1.py  -b BASIN_ID"
+echo "  run_demo1.sh  -b BASIN_ID"

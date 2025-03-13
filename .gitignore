@@ -5,4 +5,4 @@ __pycache__
 .args.txt
 
 # Some distribution files
-dist/app/
+dist/neuralhydrology_demo1/app/

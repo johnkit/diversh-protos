@@ -4,7 +4,7 @@ import pathlib
 import shutil
 
 source_dir = pathlib.Path(__file__).parent
-dist_dir = source_dir.parent / 'dist'
+dist_dir = source_dir.parent / 'dist/neuralhydrology_demo1'
 app_dir = dist_dir / 'app'
 
 # Copy source files to app dir
