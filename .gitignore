@@ -5,4 +5,5 @@ __pycache__
 .args.txt
 
 # Some distribution files
+dist/*.tgz
 dist/neuralhydrology_demo1/app/

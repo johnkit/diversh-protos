@@ -69,3 +69,13 @@ options:
 
 Note: You can also put arguments in .args.txt file
 ```
+
+## Plotting Results
+
+The `plot_results.py` script is provided to generated simple plots of a trained model test results.
+The script requires matplotlib and xarray packages.
+The results for each run are written to a file named `test_results.nc` under the basin folder.
+An example of the path is
+`.../experiments/03164000/runs/run_0703_025058/test/model_epoch050/test_results.nc`
+so the corresponding command is
+`python3 plot_results.py .../experiments/03164000/runs/run_0703_025058/test/model_epoch050/test_results.nc`
