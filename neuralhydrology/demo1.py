@@ -42,17 +42,18 @@ def main():
         print('Exiting')
         sys.exit(2)
 
-    # name_tag = f'{IMAGE_NAME}:{IMAGE_TAG}'
-    runner = DemoRun(IMAGE_NAME, args.data_dir, verbose=args.verbose)
+    image = IMAGE_NAME if args.local_image_build else f'{IMAGE_REGISTRY_USER}/{IMAGE_NAME}'
+    runner = DemoRun(image, args.data_dir, verbose=args.verbose)
     if not runner.is_image_available():
+        print()
         if args.local_image_build:
-            print(f'container image not available: {IMAGE_NAME}')
-            sys.exit(1)
+            print(f'Container image not found: {image}')
         else:
-            print('Future: add code to fetch image')
-            sys.exit(1)
+            print('Container image not found')
+            print(f'In a terminal run `docker pull {image}` and rerun this script')
+        sys.exit(1)
 
-    print('Image was found!')
+    print(f'Container image was found: {image}')
     runner.execute(
         args.basin_id,
         pathlib.Path(args.experiments_dir),

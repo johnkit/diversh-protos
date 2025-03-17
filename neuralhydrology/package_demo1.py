@@ -8,6 +8,7 @@ cd dist
 rm -rf neuralhydrology_demo1/app/demo1/__pycache__/ && tar zcf neuralhydrology_demo1.tgz neuralhydrology_demo1/
 """
 
+import os
 import pathlib
 import shutil
 import tarfile
@@ -19,7 +20,8 @@ app_dir = dist_dir / 'app'
 # Delete any existing tgz and app files
 tgz_file = source_dir / 'dist/neuralhydrology_demo1.tgz'
 tgz_file.unlink(missing_ok=True)
-shutil.rmtree(app_dir)
+if app_dir.exists():
+    shutil.rmtree(app_dir)
 
 # Copy source files to app dir
 app_dir.mkdir(parents=True, exist_ok=True)
@@ -38,7 +40,10 @@ for filename in filenames:
     shutil.copy2(from_path, app_sub_dir)
 
 # Generate tgz file
-tgz_path = source_dir.parent / 'dist/neuralhydrology_demo1.tgz'
-with tarfile.open(tgz_path, 'w:gz') as tar:
-    tar.add(dist_dir)
+dist_dir = source_dir.parent / 'dist'
+os.chdir(dist_dir)
+tgz_file = 'neuralhydrology_demo1.tgz'
+with tarfile.open(tgz_file, 'w:gz') as tar:
+    tar.add('neuralhydrology_demo1')
+    tgz_path = dist_dir / tgz_file
     print(f'Wrote {tgz_path}')

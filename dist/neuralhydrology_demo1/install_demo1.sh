@@ -11,7 +11,7 @@ help()
 "
 }
 
-if [[n $# -lt 2 ]]; then
+if [[ $# -lt 2 ]]; then
   help
   exit 0
 fi
@@ -19,7 +19,6 @@ fi
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DATA_DIR=$(realpath $1)
 EXP_DIR=$(realpath $2)
-CAMELS_SCRIPT="wget-camels-20250127T1907.sh"
 
 # Create directories
 mkdir -p ${EXP_DIR}
@@ -31,19 +30,20 @@ echo "Pulling container image ${DEMO_IMAGE} (6 GB) ..."
 docker pull ${DEMO_IMAGE}
 
 # Download CAMELS-US
-echo "Downloading CAMEL-US dataset (14 GB) ..."
-wget_script=${SOURCE_DIR}/.install/${CAMELS_SCRIPT}
-cp ${wget_script} ${DATA_DIR}
-cd ${DATA_DIR} && "./${CAMELS_SCRIPT}"
+echo "Downloading CAMEL-US dataset (3.2 GB) ..."
+zip_filename="basin_timeseries_v1p2_metForcing_obsFlow.zip"
+zip_url="https://gdex.ucar.edu/dataset/camels/file/${zip_filename}"
+cd ${DATA_DIR} && wget ${zip_url}
+
 
 # Unzip contents
 echo "Unzipping data ..."
-cd ${DATA_DIR} && unzip basin_timeseries_v1p2_metForcing_obsFlow.zip
+cd ${DATA_DIR} && unzip ${zip_filename}
 
 # Generate .args.txt file
-ARGS_FILE=${SCRIPT_DIR}/app/demo1/.args.txt
+ARGS_FILE=${SCRIPT_DIR}/app/.args.txt
 echo "--data_dir" > ${ARGS_FILE}
-echo ${DATA_DIR} >> ${ARGS_FILE}/basin_dataset_public_v1p2
+echo ${DATA_DIR}/basin_dataset_public_v1p2 >> ${ARGS_FILE}
 echo "--experiments_dir" >> ${ARGS_FILE}
 echo ${EXP_DIR} >> ${ARGS_FILE}
 
