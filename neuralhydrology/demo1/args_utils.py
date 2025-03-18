@@ -38,10 +38,13 @@ def validate_inputs(args: argparse.Namespace) -> None:
         raise FileNotFoundError(f'data_dir not found: {camels_path}')
 
     # Check for valid basin_id
+    if len(args.basin_id) == 7:
+        print('Inserting 0 in front of 7-digit basid_id {args.basin_id}')
+        args.basin_id = f'0{args.basin_id}'
     if len(args.basin_id) != 8:
         raise ValueError(f'Invalid basin id {args.basin_id} - must be 8 digits')
 
-    if 'stap' in args and args.step == 'test' and args.run_id is None:
+    if 'step' in args and args.step == 'test' and args.run_id is None:
         raise ValueError('No run_id argument. Must be provided for test step')
 
     # Check for basin_id in camels (data_dir); streamflow file should be sufficient
